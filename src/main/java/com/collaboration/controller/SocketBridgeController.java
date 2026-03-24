@@ -8,68 +8,77 @@ import org.springframework.web.bind.annotation.RestController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.collaboration.repository.UserRepository;
+import com.collaboration.model.Question;
 import com.collaboration.model.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.HashMap;
+import com.collaboration.repository.QuestionRepository;
+import com.collaboration.repository.UserRepository;
+
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * HTTP bridge for the VS Code extension.
+ * Accepts a POST at /api/extension/ask and saves the question directly to
+ * the database — no internal socket hop needed, fully compatible with Render.
+ */
 @RestController
 @RequestMapping("/api")
 public class SocketBridgeController {
 
     private static final Logger log = LoggerFactory.getLogger(SocketBridgeController.class);
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
 
-    public SocketBridgeController(UserRepository userRepository) {
+    public SocketBridgeController(QuestionRepository questionRepository, UserRepository userRepository) {
+        this.questionRepository = questionRepository;
         this.userRepository = userRepository;
     }
 
     @PostMapping("/extension/ask")
-    public ResponseEntity<?> bridgeToSocket(@RequestBody Map<String, Object> payload) {
-        try (Socket socket = new Socket("127.0.0.1", 9090);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-             
-             Map<String, Object> bridgePayload = new HashMap<>(payload);
-             bridgePayload.putIfAbsent("type", "QUESTION");
-             
-             // If username is provided, resolve to userId automatically
-             if (payload.containsKey("username")) {
+    public ResponseEntity<?> receiveFromExtension(@RequestBody Map<String, Object> payload) {
+        try {
+            log.info("Received question from VS Code extension: {}", payload);
+
+            // Resolve userId from username if provided
+            Long userId = 1L; // default fallback (admin)
+            if (payload.containsKey("username")) {
                 String username = (String) payload.get("username");
                 Optional<User> userOpt = userRepository.findByUsername(username);
                 if (userOpt.isPresent()) {
-                    bridgePayload.put("userId", userOpt.get().getId());
-                    log.info("Resolved username '{}' to userId {}", username, userOpt.get().getId());
+                    userId = userOpt.get().getId();
+                    log.info("Resolved username '{}' to userId {}", username, userId);
                 } else {
-                    log.warn("Username '{}' not found, defaulting to fallback userId 1 (admin)", username);
-                    bridgePayload.put("userId", 1L); 
+                    log.warn("Username '{}' not found, using default userId 1 (admin)", username);
                 }
-             } else {
-                bridgePayload.putIfAbsent("userId", 1L);
-             }
-             
-             String json = objectMapper.writeValueAsString(bridgePayload);
-             log.info("Bridging final payload to Socket Server: {}", json);
-             
-             out.println(json);
-             
-             String responseLine = in.readLine();
-             if (responseLine != null) {
-                return ResponseEntity.ok(objectMapper.readTree(responseLine));
-             }
+            } else if (payload.containsKey("userId")) {
+                userId = Long.valueOf(payload.get("userId").toString());
+            }
+
+            // Build the Question entity from the extension payload
+            Question q = new Question();
+            q.setUserId(userId);
+            q.setTitle(payload.getOrDefault("title", "Untitled Question from VS Code").toString());
+            q.setDescription(payload.getOrDefault("description", "Posted via VS Code Code Collab extension").toString());
+            q.setCode(payload.getOrDefault("code", "").toString());
+            q.setTags(payload.getOrDefault("tags", "vscode").toString());
+
+            // Save directly to the database — no socket needed
+            Question saved = questionRepository.save(q);
+            log.info("Question saved successfully with id={}", saved.getId());
+
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "questionId", saved.getId(),
+                "message", "Your question has been posted to the collaboration engine!"
+            ));
 
         } catch (Exception e) {
-            log.error("Bridge to socket server failed", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Socket bridging failed: " + e.getMessage()));
+            log.error("Error saving question from VS Code extension", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "status", "error",
+                "error", "Failed to save question: " + e.getMessage()
+            ));
         }
-        
-        return ResponseEntity.badRequest().body(Map.of("error", "No response from socket"));
     }
 }
