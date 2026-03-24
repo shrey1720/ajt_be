@@ -1,0 +1,11 @@
+target/
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+.idea/
+*.iml
+.vscode/
+*.log
+backend_resilience_log.txt
+frontend_final_log.txt
