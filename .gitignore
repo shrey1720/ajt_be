@@ -7,5 +7,6 @@ mvnw.cmd
 *.iml
 .vscode/
 *.log
+logs.txt
 backend_resilience_log.txt
 frontend_final_log.txt
