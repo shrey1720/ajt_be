@@ -37,6 +37,7 @@ public class GoogleOAuthController {
     private final EmailService emailService;
     private final String googleClientId;
     private final String redirectUri;
+    private final String frontendBaseUrl;
 
     public GoogleOAuthController(
             GoogleOAuthService googleOAuthService,
@@ -44,13 +45,15 @@ public class GoogleOAuthController {
             JwtService jwtService,
             EmailService emailService,
             @Value("${google.oauth.client-id:}") String googleClientId,
-            @Value("${google.oauth.redirect-uri:https://ajt-be-3.onrender.com/api/oauth2/callback/google}") String redirectUri) {
+            @Value("${google.oauth.redirect-uri:https://ajt-be-3.onrender.com/api/oauth2/callback/google}") String redirectUri,
+            @Value("${frontend.base.url:http://localhost:8000}") String frontendBaseUrl) {
         this.googleOAuthService = googleOAuthService;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.emailService = emailService;
         this.googleClientId = googleClientId;
         this.redirectUri = redirectUri;
+        this.frontendBaseUrl = frontendBaseUrl;
     }
 
     @GetMapping("/oauth2/authorize/google")
@@ -83,7 +86,7 @@ public class GoogleOAuthController {
         userRepository.updateRefreshToken(user.getId(), refreshToken, Timestamp.from(Instant.now().plus(30, ChronoUnit.DAYS)));
 
         Map<String, Object> authResponse = buildAuthResponse(user, token, refreshToken);
-        String frontendRedirectUrl = "http://localhost:8000/index.html";
+        String frontendRedirectUrl = buildFrontendUrl("/index.html");
 
         String payload;
         try {
@@ -103,9 +106,17 @@ public class GoogleOAuthController {
         String html = "<html><head><meta charset=\"utf-8\"></head><body>"
                 + "<h1>Google Login Failed</h1>"
                 + "<p>" + errorMessage + "</p>"
-                + "<p><a href=\"http://localhost:8000/login.html\">Return to login</a></p>"
+                + "<p><a href=\"" + buildFrontendUrl("/login.html") + "\">Return to login</a></p>"
                 + "</body></html>";
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).contentType(MediaType.TEXT_HTML).body(html);
+    }
+
+    private String buildFrontendUrl(String path) {
+        String base = (frontendBaseUrl == null || frontendBaseUrl.isBlank()) ? "http://localhost:8000" : frontendBaseUrl;
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + path;
     }
 
     @PostMapping("/oauth2/google/token")
