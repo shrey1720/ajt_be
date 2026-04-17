@@ -44,7 +44,7 @@ public class GoogleOAuthController {
             JwtService jwtService,
             EmailService emailService,
             @Value("${google.oauth.client-id:}") String googleClientId,
-            @Value("${google.oauth.redirect-uri:http://localhost:8080/api/oauth2/callback/google}") String redirectUri) {
+            @Value("${google.oauth.redirect-uri:https://ajt-be-3.onrender.com/api/oauth2/callback/google}") String redirectUri) {
         this.googleOAuthService = googleOAuthService;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
