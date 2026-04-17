@@ -27,6 +27,10 @@ public class QuestionRepository {
         q.setVotes(rs.getInt("votes"));
         q.setBounty(rs.getInt("bounty"));
         q.setStatus(rs.getString("status"));
+        q.setAcceptedAnswerId(rs.getLong("accepted_answer_id"));
+        if (rs.wasNull()) {
+            q.setAcceptedAnswerId(null);
+        }
         q.setCreatedAt(rs.getTimestamp("created_at"));
         q.setUsername(rs.getString("username"));
         return q;
@@ -66,5 +70,9 @@ public class QuestionRepository {
 
     public void updateVotes(Long questionId, int increment) {
         jdbcTemplate.update("UPDATE questions SET votes = votes + ? WHERE id = ?", increment, questionId);
+    }
+
+    public void markAcceptedAnswer(Long questionId, Long answerId) {
+        jdbcTemplate.update("UPDATE questions SET accepted_answer_id = ? WHERE id = ?", answerId, questionId);
     }
 }

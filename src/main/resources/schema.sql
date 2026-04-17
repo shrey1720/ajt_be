@@ -50,5 +50,12 @@ CREATE TABLE IF NOT EXISTS votes (
 
 -- Add columns if they don't exist (for existing tables)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reputation INT DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token_expires_at TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires_at TIMESTAMP;
 ALTER TABLE questions ADD COLUMN IF NOT EXISTS bounty INT DEFAULT 0;
 ALTER TABLE questions ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'OPEN';
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS accepted_answer_id INT;

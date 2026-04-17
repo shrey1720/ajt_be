@@ -2,6 +2,7 @@ package com.collaboration;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 @SpringBootApplication
@@ -14,7 +15,11 @@ public class EngineApplication {
                 .ignoreIfMissing()
                 .load();
             dotenv.entries().forEach(entry -> {
-                System.setProperty(entry.getKey(), entry.getValue());
+                String key = entry.getKey();
+                String value = entry.getValue();
+                System.setProperty(key, value);
+                String relaxedKey = key.toLowerCase().replace('_', '.');
+                System.setProperty(relaxedKey, value);
             });
         } catch (Exception e) {
             // Ignore if .env is missing (e.g. in production)

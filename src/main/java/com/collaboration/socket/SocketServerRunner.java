@@ -1,6 +1,11 @@
 package com.collaboration.socket;
 
-import com.collaboration.repository.QuestionRepository;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,16 +13,15 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.collaboration.repository.QuestionRepository;
 
 @Component
 public class SocketServerRunner {
 
     private static final Logger log = LoggerFactory.getLogger(SocketServerRunner.class);
+
+    @Value("${socket.server.enabled:false}")
+    private boolean enabled;
 
     @Value("${socket.server.port:9090}")
     private int port;
@@ -31,6 +35,11 @@ public class SocketServerRunner {
 
     @EventListener(ApplicationReadyEvent.class)
     public void startSocketServer() {
+        if (!enabled) {
+            log.info("Socket Server is disabled (socket.server.enabled=false)");
+            return;
+        }
+
         executorService.submit(() -> {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
                 log.info("Socket Server started on port " + port);

@@ -1,20 +1,21 @@
 package com.collaboration.controller;
 
+import java.util.Map;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.collaboration.model.Question;
 import com.collaboration.model.User;
 import com.collaboration.repository.QuestionRepository;
 import com.collaboration.repository.UserRepository;
-
-import java.util.Map;
-import java.util.Optional;
+import com.collaboration.service.NotificationService;
 
 /**
  * HTTP bridge for the VS Code extension.
@@ -29,10 +30,13 @@ public class SocketBridgeController {
 
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public SocketBridgeController(QuestionRepository questionRepository, UserRepository userRepository) {
+    public SocketBridgeController(QuestionRepository questionRepository, UserRepository userRepository,
+                                  NotificationService notificationService) {
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @PostMapping("/extension/ask")
@@ -40,10 +44,9 @@ public class SocketBridgeController {
         try {
             log.info("Received question from VS Code extension: {}", payload);
 
-            // Resolve userId from username if provided
-            Long userId = 1L; // default fallback (admin)
+            Long userId = 1L;
             if (payload.containsKey("username")) {
-                String username = (String) payload.get("username");
+                String username = payload.get("username").toString();
                 Optional<User> userOpt = userRepository.findByUsername(username);
                 if (userOpt.isPresent()) {
                     userId = userOpt.get().getId();
@@ -55,7 +58,6 @@ public class SocketBridgeController {
                 userId = Long.valueOf(payload.get("userId").toString());
             }
 
-            // Build the Question entity from the extension payload
             Question q = new Question();
             q.setUserId(userId);
             q.setTitle(payload.getOrDefault("title", "Untitled Question from VS Code").toString());
@@ -63,9 +65,12 @@ public class SocketBridgeController {
             q.setCode(payload.getOrDefault("code", "").toString());
             q.setTags(payload.getOrDefault("tags", "vscode").toString());
 
-            // Save directly to the database — no socket needed
             Question saved = questionRepository.save(q);
             log.info("Question saved successfully with id={}", saved.getId());
+            notificationService.publish("question_posted", "New question posted from VS Code extension", Map.of(
+                    "questionId", saved.getId(),
+                    "title", saved.getTitle(),
+                    "userId", saved.getUserId()));
 
             return ResponseEntity.ok(Map.of(
                 "status", "success",

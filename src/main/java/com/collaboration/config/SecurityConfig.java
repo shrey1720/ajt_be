@@ -1,7 +1,7 @@
 package com.collaboration.config;
 
-import com.collaboration.security.JwtAuthenticationFilter;
-import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,7 +15,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.collaboration.security.JwtAuthenticationFilter;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 public class SecurityConfig {
@@ -51,10 +53,10 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/login", "/api/register", "/api/status").permitAll()
+                .requestMatchers("/api/login", "/api/register", "/api/status", "/api/verify-email", "/api/refresh-token", "/api/request-password-reset", "/api/reset-password", "/api/resend-verification", "/api/oauth2/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/votes/me").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/questions", "/api/question/*", "/api/answers/*", "/api/comments/*", "/api/users/top").permitAll()
-                .requestMatchers("/api/extension/ask").permitAll()
+                .requestMatchers("/api/extension/ask", "/api/notifications/stream").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

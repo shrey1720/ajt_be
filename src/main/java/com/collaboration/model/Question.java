@@ -12,6 +12,7 @@ public class Question {
     private Integer votes;
     private Integer bounty;
     private String status;
+    private Long acceptedAnswerId;
     private Timestamp createdAt;
     
     private String username;
@@ -44,6 +45,9 @@ public class Question {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public Long getAcceptedAnswerId() { return acceptedAnswerId; }
+    public void setAcceptedAnswerId(Long acceptedAnswerId) { this.acceptedAnswerId = acceptedAnswerId; }
     
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
