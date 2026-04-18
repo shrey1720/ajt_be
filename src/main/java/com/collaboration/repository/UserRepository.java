@@ -149,4 +149,8 @@ public class UserRepository {
         String sql = "SELECT * FROM users ORDER BY reputation DESC LIMIT 5";
         return jdbcTemplate.query(sql, userRowMapper);
     }
+
+    public void updateReputation(Long userId, int amount) {
+        jdbcTemplate.update("UPDATE users SET reputation = reputation + ? WHERE id = ?", amount, userId);
+    }
 }

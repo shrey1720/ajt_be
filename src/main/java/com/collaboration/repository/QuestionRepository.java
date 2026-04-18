@@ -75,4 +75,8 @@ public class QuestionRepository {
     public void markAcceptedAnswer(Long questionId, Long answerId) {
         jdbcTemplate.update("UPDATE questions SET accepted_answer_id = ? WHERE id = ?", answerId, questionId);
     }
+
+    public void clearBounty(Long questionId) {
+        jdbcTemplate.update("UPDATE questions SET bounty = 0 WHERE id = ?", questionId);
+    }
 }
