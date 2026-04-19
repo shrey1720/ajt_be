@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/login", "/api/register", "/api/status", "/api/verify-email", "/api/refresh-token", "/api/request-password-reset", "/api/reset-password", "/api/resend-verification", "/api/oauth2/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/votes/me").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/questions", "/api/question/*", "/api/answers/*", "/api/comments/*", "/api/users/top").permitAll()
-                .requestMatchers("/api/extension/ask", "/api/notifications/stream").permitAll()
+                .requestMatchers("/api/extension/ask", "/api/notifications/stream", "/api/ws/**").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

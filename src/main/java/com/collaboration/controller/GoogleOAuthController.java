@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -140,16 +141,16 @@ public class GoogleOAuthController {
     }
 
     private Map<String, Object> buildAuthResponse(User user, String token, String refreshToken) {
-        return Map.of(
-                "token", token,
-                "refreshToken", refreshToken,
-                "user", Map.of(
-                        "id", user.getId(),
-                        "username", user.getUsername(),
-                        "email", user.getEmail() == null ? "" : user.getEmail(),
-                        "role", user.getRole() == null ? "USER" : user.getRole(),
-                        "reputation", user.getReputation() == null ? 0 : user.getReputation()
-                )
-        );
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("refreshToken", refreshToken);
+        response.put("user", Map.of(
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "email", user.getEmail() == null ? "" : user.getEmail(),
+                "role", user.getRole() == null ? "USER" : user.getRole(),
+                "reputation", user.getReputation() == null ? 0 : user.getReputation()
+        ));
+        return response;
     }
 }

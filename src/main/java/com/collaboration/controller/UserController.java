@@ -3,6 +3,7 @@ package com.collaboration.controller;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -217,15 +218,15 @@ public class UserController {
 
     private Map<String, Object> buildAuthResponse(User user, String token) {
         Integer reputation = user.getReputation();
-        return Map.of(
-                "token", token,
-                "user", Map.of(
-                        "id", user.getId(),
-                        "username", user.getUsername(),
-                        "email", user.getEmail() == null ? "" : user.getEmail(),
-                        "role", user.getRole() == null ? "USER" : user.getRole(),
-                        "reputation", reputation != null ? reputation : 0
-                )
-        );
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("user", Map.of(
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "email", user.getEmail() == null ? "" : user.getEmail(),
+                "role", user.getRole() == null ? "USER" : user.getRole(),
+                "reputation", reputation != null ? reputation : 0
+        ));
+        return response;
     }
 }

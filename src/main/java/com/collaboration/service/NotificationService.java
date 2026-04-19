@@ -10,12 +10,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import com.collaboration.socket.NotificationWebSocketHandler;
 
 @Service
 public class NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
     private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+    private final NotificationWebSocketHandler webSocketHandler;
+
+    public NotificationService(NotificationWebSocketHandler webSocketHandler) {
+        this.webSocketHandler = webSocketHandler;
+    }
 
     public SseEmitter createEmitter() {
         SseEmitter emitter = new SseEmitter(0L);
@@ -45,6 +51,7 @@ public class NotificationService {
             event.put("details", details);
         }
 
+        // 1. Broadcast to SSE (Browsers)
         emitters.forEach(emitter -> {
             try {
                 emitter.send(SseEmitter.event()
@@ -55,5 +62,8 @@ public class NotificationService {
                 emitters.remove(emitter);
             }
         });
+
+        // 2. Broadcast to WebSockets (VS Code & Modern browsers)
+        webSocketHandler.broadcast(event);
     }
 }
