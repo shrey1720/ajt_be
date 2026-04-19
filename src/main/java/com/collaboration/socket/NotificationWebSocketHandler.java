@@ -42,8 +42,12 @@ public class NotificationWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        log.debug("Received WebSocket message: {}", message.getPayload());
-        // Currently, we mostly push FROM server TO clients, but we could handle client messages here.
+        String payload = message.getPayload();
+        if ("ping".equalsIgnoreCase(payload)) {
+            session.sendMessage(new TextMessage("pong"));
+            return;
+        }
+        log.debug("Received WebSocket message: {}", payload);
     }
 
     /**
