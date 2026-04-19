@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.env.Environment;
 
 import com.collaboration.model.Answer;
 import com.collaboration.model.Question;
@@ -29,17 +30,20 @@ public class AnswerController {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final Environment env;
 
     public AnswerController(AnswerRepository answerRepository,
                             QuestionRepository questionRepository,
                             UserRepository userRepository,
                             NotificationService notificationService,
-                            EmailService emailService) {
+                            EmailService emailService,
+                            Environment env) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.emailService = emailService;
+        this.env = env;
     }
 
     @PostMapping("/answer")
@@ -84,6 +88,6 @@ public class AnswerController {
     }
 
     private String envBaseUrl() {
-        return System.getProperty("app.base.url", "http://localhost:8080");
+        return env.getProperty("frontend.base.url", "http://localhost:8000");
     }
 }

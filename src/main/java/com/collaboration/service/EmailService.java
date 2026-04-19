@@ -51,7 +51,7 @@ public class EmailService {
     }
 
     public void sendVerificationToken(String email, String verificationToken) {
-        String verificationLink = String.format("%s/api/verify-email?token=%s", env.getProperty("APP_BASE_URL", "http://localhost:8080"), verificationToken);
+        String verificationLink = String.format("%s/api/verify-email?token=%s", env.getProperty("app.base.url", "http://localhost:8080"), verificationToken);
         String subject = "Verify your CodeCollab account";
         String body = "<p>Welcome to CodeCollab!</p>"
                 + "<p>Please verify your email by clicking the link below:</p>"
@@ -60,7 +60,7 @@ public class EmailService {
     }
 
     public void sendPasswordResetToken(String email, String resetToken) {
-        String resetLink = String.format("%s/reset-password?token=%s", env.getProperty("APP_BASE_URL", "http://localhost:8080"), resetToken);
+        String resetLink = String.format("%s/index.html?reset_token=%s", env.getProperty("frontend.base.url", "http://localhost:8000"), resetToken);
         String subject = "Reset your CodeCollab password";
         String body = "<p>We received a request to reset your password.</p>"
                 + "<p>Use the token below or click the link to reset your password:</p>"
