@@ -83,7 +83,7 @@ public class GoogleOAuthController {
         User user = googleOAuthService.loadOrCreateUser(googleUser);
         String token = jwtService.generateToken(user);
         String refreshToken = UUID.randomUUID().toString();
-        userRepository.updateRefreshToken(user.getId(), refreshToken, Timestamp.from(Instant.now().plus(30, ChronoUnit.DAYS)));
+        userRepository.updateRefreshToken(user.getId(), refreshToken, Timestamp.from(Instant.now().plus(90, ChronoUnit.DAYS)));
 
         Map<String, Object> authResponse = buildAuthResponse(user, token, refreshToken);
         String frontendRedirectUrl = buildFrontendUrl("/index.html");
@@ -134,7 +134,7 @@ public class GoogleOAuthController {
         User user = googleOAuthService.loadOrCreateUser(googleUser);
         String token = jwtService.generateToken(user);
         String refreshToken = UUID.randomUUID().toString();
-        userRepository.updateRefreshToken(user.getId(), refreshToken, Timestamp.from(Instant.now().plus(30, ChronoUnit.DAYS)));
+        userRepository.updateRefreshToken(user.getId(), refreshToken, Timestamp.from(Instant.now().plus(90, ChronoUnit.DAYS)));
 
         return ResponseEntity.ok(buildAuthResponse(user, token, refreshToken));
     }

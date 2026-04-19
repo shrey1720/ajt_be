@@ -57,7 +57,11 @@ public class UserController {
         emailService.sendVerificationToken(savedUser.getEmail(), verificationToken);
 
         String token = jwtService.generateToken(savedUser);
+        String refreshToken = UUID.randomUUID().toString();
+        userRepository.updateRefreshToken(savedUser.getId(), refreshToken, Timestamp.from(Instant.now().plus(90, ChronoUnit.DAYS)));
+
         Map<String, Object> response = buildAuthResponse(savedUser, token);
+        response.put("refreshToken", refreshToken);
         response.put("verificationToken", verificationToken);
         response.put("message", "Registration successful. Check logs for verification link.");
         return ResponseEntity.ok(response);
@@ -77,7 +81,7 @@ public class UserController {
 
         String token = jwtService.generateToken(user);
         String refreshToken = UUID.randomUUID().toString();
-        userRepository.updateRefreshToken(user.getId(), refreshToken, Timestamp.from(Instant.now().plus(30, ChronoUnit.DAYS)));
+        userRepository.updateRefreshToken(user.getId(), refreshToken, Timestamp.from(Instant.now().plus(90, ChronoUnit.DAYS)));
 
         Map<String, Object> response = buildAuthResponse(user, token);
         response.put("refreshToken", refreshToken);
@@ -104,7 +108,7 @@ public class UserController {
 
         String token = jwtService.generateToken(user);
         String newRefreshToken = UUID.randomUUID().toString();
-        userRepository.updateRefreshToken(user.getId(), newRefreshToken, Timestamp.from(Instant.now().plus(30, ChronoUnit.DAYS)));
+        userRepository.updateRefreshToken(user.getId(), newRefreshToken, Timestamp.from(Instant.now().plus(90, ChronoUnit.DAYS)));
 
         Map<String, Object> response = buildAuthResponse(user, token);
         response.put("refreshToken", newRefreshToken);
@@ -118,6 +122,18 @@ public class UserController {
         }
         userRepository.findByUsername(authentication.getName()).ifPresent(user -> userRepository.clearRefreshToken(user.getId()));
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMe(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        Optional<User> userOpt = userRepository.findByUsername(authentication.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of("error", "User not found"));
+        }
+        return ResponseEntity.ok(buildAuthResponse(userOpt.get(), null));
     }
 
     @PostMapping("/request-password-reset")
