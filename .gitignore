@@ -8,6 +8,8 @@ mvnw.cmd
 .vscode/
 *.log
 .env
+.env.*
+!.env.example
 logs.txt
 backend_resilience_log.txt
 frontend_final_log.txt
