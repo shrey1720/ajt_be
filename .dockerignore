@@ -1,0 +1,13 @@
+.git
+.gitignore
+.github
+Dockerfile
+README.md
+target/
+node_modules/
+.env
+.env.*
+!.env.example
+logs.txt
+backend_resilience_log.txt
+frontend_final_log.txt
